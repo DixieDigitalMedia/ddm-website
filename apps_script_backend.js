@@ -2,7 +2,7 @@
 // Deployment: Deploy as Web App, execute as Me, access to Anyone
 // Sheet must have tabs: "Submissions" and "Playbook Leads"
 
-const SHEET_ID = '1mqi4E0N6JHuLaMIL1F_tnCLcI4n-02PpHgx-BpoBqYw';
+const SHEET_ID = '1AeANyW_aGKrYk47qwBfXbu3rWiscBB4Ng3Bw85rOzRU';
 
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
