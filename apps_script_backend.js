@@ -121,14 +121,14 @@ function handleContactSubmission(ss, params) {
   const spamCheck = checkSpamIndicators(params, 'contact');
 
   const timestamp = new Date();
+  // Match the sheet structure: Timestamp, Name, Email, Phone, Organization, Service Interest, Message, Page Source, Lead Status, Notes
   const row = [
     timestamp,
     (params.firstName || '') + ' ' + (params.lastName || ''), // Full name
     params.email || '',
     params.phone || '',
     params.organization || '',
-    params.type || '',
-    params.interest || '',
+    params.interest || '',  // Service Interest
     params.message || '',
     'contact.html', // Page Source
     spamCheck.isSpam ? 'Possible Spam' : 'New Lead',
