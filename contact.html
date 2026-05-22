@@ -76,6 +76,11 @@
                 <div>
                     <h2 class="text-3xl font-bold text-navy mb-6">Send Us a Message</h2>
                     <form id="contactForm" class="space-y-6" action="https://script.google.com/macros/s/AKfycbxkFC-ZR0aNbtmQcMW5FvIjPQ7ErCuG7UxbO8s--y0V3sqtBOm1JumGQgx3bcsh3goshQ/exec" method="POST" target="contact_hidden_iframe">
+                        <!-- Honeypot field - hidden from humans, bots will fill it -->
+                        <div style="position: absolute; left: -9999px; opacity: 0;">
+                            <label for="companyWebsite">Company Website</label>
+                            <input type="text" id="companyWebsite" name="companyWebsite" tabindex="-1" autocomplete="off">
+                        </div>
                         <div id="formSuccess" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
                             Thank you! Your message has been sent. We'll be in touch within 24 hours.
                         </div>
