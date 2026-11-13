@@ -75,7 +75,9 @@
                 <!-- Contact Form -->
                 <div>
                     <h2 class="text-3xl font-bold text-navy mb-6">Send Us a Message</h2>
-                    <form id="contactForm" class="space-y-6" action="https://script.google.com/macros/s/AKfycbxkFC-ZR0aNbtmQcMW5FvIjPQ7ErCuG7UxbO8s--y0V3sqtBOm1JumGQgx3bcsh3goshQ/exec" method="POST" target="contact_hidden_iframe">
+                    <!-- Handled by Netlify Forms (form name: "contact"). Submissions appear in the Netlify dashboard under Forms. -->
+                    <form id="contactForm" name="contact" class="space-y-6" method="POST" action="/contact.html?sent=1" data-netlify="true" netlify-honeypot="companyWebsite">
+                        <input type="hidden" name="form-name" value="contact">
                         <!-- Honeypot field - hidden from humans, bots will fill it -->
                         <div style="position: absolute; left: -9999px; opacity: 0;">
                             <label for="companyWebsite">Company Website</label>
@@ -139,31 +141,45 @@
                         </button>
                     </form>
 
-                    <!-- Hidden iframe for form submission -->
-                    <iframe name="contact_hidden_iframe" style="display:none;"></iframe>
-
                     <script>
-                        document.getElementById('contactForm').addEventListener('submit', function(e) {
+                        (function() {
+                            const form = document.getElementById('contactForm');
                             const submitBtn = document.getElementById('submitBtn');
                             const successDiv = document.getElementById('formSuccess');
                             const errorDiv = document.getElementById('formError');
-                            
-                            // Hide previous messages
-                            successDiv.classList.add('hidden');
-                            errorDiv.classList.add('hidden');
-                            
-                            // Show "Sending..." state
-                            submitBtn.disabled = true;
-                            submitBtn.textContent = 'Sending...';
-                            
-                            // After a short delay, show success message and reset form
-                            setTimeout(function() {
+
+                            // No-JS fallback: the form posts normally and returns here with ?sent=1
+                            if (new URLSearchParams(window.location.search).get('sent') === '1') {
                                 successDiv.classList.remove('hidden');
-                                document.getElementById('contactForm').reset();
-                                submitBtn.disabled = false;
-                                submitBtn.textContent = 'Send Message';
-                            }, 1500);
-                        });
+                            }
+
+                            form.addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                successDiv.classList.add('hidden');
+                                errorDiv.classList.add('hidden');
+                                submitBtn.disabled = true;
+                                submitBtn.textContent = 'Sending...';
+
+                                fetch('/', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: new URLSearchParams(new FormData(form)).toString()
+                                })
+                                .then(function(response) {
+                                    if (!response.ok) throw new Error('Status ' + response.status);
+                                    successDiv.classList.remove('hidden');
+                                    form.reset();
+                                    if (typeof gtag === 'function') gtag('event', 'generate_lead', { form: 'contact' });
+                                })
+                                .catch(function() {
+                                    errorDiv.classList.remove('hidden');
+                                })
+                                .finally(function() {
+                                    submitBtn.disabled = false;
+                                    submitBtn.textContent = 'Send Message';
+                                });
+                            });
+                        })();
                     </script>
                 </div>
 

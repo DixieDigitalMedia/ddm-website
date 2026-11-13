@@ -124,16 +124,21 @@
                 <!-- Right: Download Form -->
                 <div class="bg-white p-8 rounded-lg shadow-lg">
                     <h3 class="text-2xl font-bold text-navy mb-4">Get Your Free Copy</h3>
-                    <p class="text-gray-600 mb-6">Enter your information below and we'll send you the playbook immediately.</p>
+                    <p class="text-gray-600 mb-6">Enter your information below and your download will start instantly.</p>
                     
-                    <form id="playbookForm" action="https://script.google.com/macros/s/AKfycbxkFC-ZR0aNbtmQcMW5FvIjPQ7ErCuG7UxbO8s--y0V3sqtBOm1JumGQgx3bcsh3goshQ/exec" method="POST" target="playbook_hidden_iframe" class="space-y-4">
+                    <!-- Handled by Netlify Forms (form name: "playbook"). Submissions appear in the Netlify dashboard under Forms. -->
+                    <form id="playbookForm" name="playbook" method="POST" action="/playbook.html?sent=1" data-netlify="true" netlify-honeypot="companyWebsite" class="space-y-4">
+                        <input type="hidden" name="form-name" value="playbook">
                         <!-- Honeypot field - hidden from humans, bots will fill it -->
                         <div style="position: absolute; left: -9999px; opacity: 0;">
                             <label for="companyWebsite">Company Website</label>
                             <input type="text" id="companyWebsite" name="companyWebsite" tabindex="-1" autocomplete="off">
                         </div>
                         <div id="formSuccess" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                            Thank you! We've received your request and will send you the Playbook soon.
+                            <p class="mb-3">Thank you! Your download should start automatically. If it doesn't, use the button below.</p>
+                            <a href="assets/digital-heritage-playbook.pdf" download class="inline-block bg-navy text-white px-4 py-2 rounded font-semibold hover:bg-[#001F3F] transition">
+                                Download the Playbook (PDF)
+                            </a>
                         </div>
                         <div id="formError" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                             There was an error submitting your request. Please try again or email us directly at dixie@dixiedigital.media
@@ -174,31 +179,56 @@
                         </button>
                     </form>
                     
-                    <!-- Hidden iframe for form submission -->
-                    <iframe name="playbook_hidden_iframe" style="display:none;"></iframe>
-                    
                     <script>
-                        document.getElementById('playbookForm').addEventListener('submit', function(e) {
+                        (function() {
+                            const form = document.getElementById('playbookForm');
                             const submitBtn = document.getElementById('submitBtn');
                             const successDiv = document.getElementById('formSuccess');
                             const errorDiv = document.getElementById('formError');
-                            
-                            // Hide previous messages
-                            successDiv.classList.add('hidden');
-                            errorDiv.classList.add('hidden');
-                            
-                            // Show "Sending..." state
-                            submitBtn.disabled = true;
-                            submitBtn.textContent = 'Sending...';
-                            
-                            // After a short delay, show success message and reset form
-                            setTimeout(function() {
+                            const pdfUrl = 'assets/digital-heritage-playbook.pdf';
+
+                            function startDownload() {
+                                const a = document.createElement('a');
+                                a.href = pdfUrl;
+                                a.download = 'Digital-Heritage-Playbook.pdf';
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                            }
+
+                            // No-JS fallback: the form posts normally and returns here with ?sent=1
+                            if (new URLSearchParams(window.location.search).get('sent') === '1') {
                                 successDiv.classList.remove('hidden');
-                                document.getElementById('playbookForm').reset();
-                                submitBtn.disabled = false;
-                                submitBtn.textContent = 'Download the Playbook';
-                            }, 1500);
-                        });
+                            }
+
+                            form.addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                successDiv.classList.add('hidden');
+                                errorDiv.classList.add('hidden');
+                                submitBtn.disabled = true;
+                                submitBtn.textContent = 'Sending...';
+
+                                fetch('/', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: new URLSearchParams(new FormData(form)).toString()
+                                })
+                                .then(function(response) {
+                                    if (!response.ok) throw new Error('Status ' + response.status);
+                                    successDiv.classList.remove('hidden');
+                                    form.reset();
+                                    startDownload();
+                                    if (typeof gtag === 'function') gtag('event', 'generate_lead', { form: 'playbook' });
+                                })
+                                .catch(function() {
+                                    errorDiv.classList.remove('hidden');
+                                })
+                                .finally(function() {
+                                    submitBtn.disabled = false;
+                                    submitBtn.textContent = 'Download the Playbook';
+                                });
+                            });
+                        })();
                     </script>
                     
                     <p class="text-xs text-gray-500 mt-4 text-center">
